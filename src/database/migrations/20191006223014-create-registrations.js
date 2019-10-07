@@ -1,23 +1,11 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('meetings', {
+    return queryInterface.createTable('registrations', {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-      },
-      title: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      description: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      location: {
-        type: Sequelize.STRING,
-        allowNull: false,
       },
       user_id: {
         type: Sequelize.INTEGER,
@@ -26,15 +14,11 @@ module.exports = {
         onDelete: 'CASCADE',
         allowNull: false,
       },
-      file_id: {
+      meeting_id: {
         type: Sequelize.INTEGER,
-        references: { model: 'files', key: 'id' },
+        references: { model: 'meetings', key: 'id' },
         onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
-        allowNull: true,
-      },
-      date: {
-        type: Sequelize.DATE,
+        onDelete: 'CASCADE',
         allowNull: false,
       },
       created_at: {
@@ -49,6 +33,6 @@ module.exports = {
   },
 
   down: queryInterface => {
-    return queryInterface.dropTable('meeting');
+    return queryInterface.dropTable('registrations');
   },
 };
