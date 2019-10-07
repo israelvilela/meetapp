@@ -3,6 +3,8 @@ import { Op } from 'sequelize';
 import { isAfter, isEqual } from 'date-fns';
 import Registration from '../models/Registration';
 import Meeting from '../models/Meeting';
+import User from '../models/User';
+import Mail from '../../lib/Mail';
 
 class RegistrationController {
   async index(req, res) {
@@ -81,12 +83,50 @@ class RegistrationController {
       });
     }
 
-    const registration = await Registration.create({
+    await Registration.create({
       user_id: req.userId,
       meeting_id: meetingId,
     });
 
-    return res.json(registration);
+    const test = await Registration.findOne({
+      where: {
+        user_id: req.userId,
+        meeting_id: meetingId,
+      },
+      include: [
+        {
+          model: User,
+          as: 'userRegistration',
+          attributes: ['name', 'email'],
+        },
+        {
+          model: Meeting,
+          as: 'meetingRegistration',
+          attributes: ['title'],
+          include: [
+            {
+              model: User,
+              as: 'organizer',
+              attributes: ['name', 'email'],
+            },
+          ],
+        },
+      ],
+    });
+
+    await Mail.sendMail({
+      to: `${test.meetingRegistration.organizer.name}<${test.meetingRegistration.organizer.email}>`,
+      subject: 'Nova Inscrição',
+      template: 'registration',
+      context: {
+        organizer: test.meetingRegistration.organizer.name,
+        title: test.meetingRegistration.title,
+        user: test.userRegistration.name,
+        email: test.userRegistration.email,
+      },
+    });
+
+    return res.json(test);
   }
 }
 
