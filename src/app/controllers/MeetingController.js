@@ -1,17 +1,33 @@
 import * as Yup from 'yup';
-import { parseISO, isAfter, isBefore } from 'date-fns';
+import { parseISO, isBefore, format } from 'date-fns';
+import pt from 'date-fns/locale/pt';
+
 import Meeting from '../models/Meeting';
+import File from '../models/File';
 
 class MeetingController {
   async index(req, res) {
-    const meetings = await Meeting.findAll({ where: { user_id: req.userId } });
+    const meetings = await Meeting.findAll({
+      where: { user_id: req.userId },
+      include: {
+        model: File,
+        as: 'file',
+        attributes: ['name', 'path', 'url'],
+      },
+    });
 
+    if (meetings) {
+      meetings.map(m => {
+        m.formattedDate = format(m.date, "dd 'de' MMMM', às' H'h'", {
+          locale: pt,
+        });
+      });
+    }
     return res.json(meetings);
   }
 
   async store(req, res) {
     const { title, description, location, date, file_id } = req.body;
-
     const schema = Yup.object().shape({
       title: Yup.string().required(),
       description: Yup.string().required(),

@@ -8,6 +8,7 @@ class Meeting extends Model {
         description: Sequelize.STRING,
         location: Sequelize.STRING,
         date: Sequelize.DATE,
+        formattedDate: Sequelize.VIRTUAL,
       },
       {
         sequelize,
