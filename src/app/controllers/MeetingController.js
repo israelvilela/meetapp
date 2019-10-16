@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import { parseISO, isBefore, format } from 'date-fns';
+import { parseISO, isBefore, format, isAfter } from 'date-fns';
 import pt from 'date-fns/locale/pt';
 
 import Meeting from '../models/Meeting';

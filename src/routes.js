@@ -13,7 +13,7 @@ import ListMeetingController from './app/controllers/ListMeetingController';
 import authMiddleware from './app/middlewares/auth';
 
 const routes = new Router();
-const upload = new multer(multerConfig);
+const upload = multer(multerConfig);
 
 routes.post('/users', UserController.store);
 routes.post('/sessions', SessionController.store);
