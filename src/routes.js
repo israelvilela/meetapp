@@ -31,6 +31,8 @@ routes.delete('/meetings/:id', MeetingController.delete);
 
 routes.get('/registrations', RegistrationController.index);
 routes.post('/registrations', RegistrationController.store);
+routes.delete('/registrations/:id', RegistrationController.delete);
+
 
 routes.get('/meetings/all', ListMeetingController.index);
 

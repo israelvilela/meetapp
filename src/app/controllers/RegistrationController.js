@@ -1,10 +1,15 @@
 import * as Yup from 'yup';
 import { Op } from 'sequelize';
+import { format, isAfter } from 'date-fns';
+import pt from 'date-fns/locale/pt';
 import { isAfter, isEqual } from 'date-fns';
 import Registration from '../models/Registration';
 import Meeting from '../models/Meeting';
 import User from '../models/User';
-import Mail from '../../lib/Mail';
+import File from '../models/File';
+import Queue from '../../lib/Queue';
+
+import RegistrationMail from '../jobs/RegistrationMail';
 
 class RegistrationController {
   async index(req, res) {
@@ -12,16 +17,36 @@ class RegistrationController {
       where: {
         user_id: req.userId,
       },
+      attributes: ['id'],
       order: [[{ model: Meeting, as: 'meetingRegistration' }, 'date', 'ASC']],
       include: [
         {
           model: Meeting,
           as: 'meetingRegistration',
-          attributes: ['title', 'description', 'location', 'date'],
-          where: { date: { [Op.gte]: new Date() } },
+          attributes: ['id', 'title', 'location', 'date'],
+          include: [
+            {
+              model: User,
+              as: 'organizer',
+              attributes: ['name', 'email'],
+            },
+            {
+              model: File,
+              as: 'file',
+              attributes: ['name', 'path', 'url'],
+            }
+          ]
         },
       ],
     });
+
+    if (registrations) {
+      registrations.map(r => {
+        r.meetingRegistration.formattedDate = format(r.meetingRegistration.date, "dd 'de' MMMM', às' H'h'", {
+          locale: pt,
+        });
+      });
+    }
 
     return res.json(registrations);
   }
@@ -88,7 +113,7 @@ class RegistrationController {
       meeting_id: meetingId,
     });
 
-    const test = await Registration.findOne({
+    const data = await Registration.findOne({
       where: {
         user_id: req.userId,
         meeting_id: meetingId,
@@ -114,19 +139,28 @@ class RegistrationController {
       ],
     });
 
-    await Mail.sendMail({
-      to: `${test.meetingRegistration.organizer.name}<${test.meetingRegistration.organizer.email}>`,
-      subject: 'Nova Inscrição',
-      template: 'registration',
-      context: {
-        organizer: test.meetingRegistration.organizer.name,
-        title: test.meetingRegistration.title,
-        user: test.userRegistration.name,
-        email: test.userRegistration.email,
-      },
-    });
+    await Queue.add(RegistrationMail.key, {
+      register: data
+    })
 
-    return res.json(test);
+    return res.json(data);
+  }
+
+  async delete(req, res) {
+    console.log(req.params.id)
+    const registration = await Registration.findByPk(req.params.id);
+
+    if (registration) {
+      await Registration.destroy({
+        where: { id: req.params.id },
+      });
+    } else {
+      return res.status(400).json({
+        message: 'Erro ao cancelar inscrição.',
+      });
+    }
+
+    return res.json(registration);
   }
 }
 
