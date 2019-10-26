@@ -37,7 +37,7 @@ class MeetingController {
     });
 
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ message: 'Validation fails. ' });
+      return res.status(400).json({ message: 'Formulário incompleto. Favor preencher todos os campos. ' });
     }
 
     // Validar se data é anterior a atual
