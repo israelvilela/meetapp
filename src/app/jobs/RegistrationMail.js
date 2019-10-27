@@ -7,7 +7,6 @@ class RegistrationMail {
 
   async handle({ data }) {
     const { register } = data;
-    console.log('aquii', register)
     await Mail.sendMail({
       to: `${register.meetingRegistration.organizer.name}<${register.meetingRegistration.organizer.email}>`,
       subject: 'Nova Inscrição',

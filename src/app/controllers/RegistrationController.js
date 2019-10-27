@@ -147,7 +147,6 @@ class RegistrationController {
   }
 
   async delete(req, res) {
-    console.log(req.params.id)
     const registration = await Registration.findByPk(req.params.id);
 
     if (registration) {
