@@ -4,11 +4,11 @@ import pt from 'date-fns/locale/pt';
 import Meeting from '../models/Meeting';
 import User from '../models/User';
 import File from '../models/File';
+import Registration from '../models/Registration';
 
 class ListMeetingController {
   async index(req, res) {
     const { page = 1, date } = req.query;
-
     const parsedDate = parseISO(date);
 
     const meetings = await Meeting.findAll({
@@ -44,7 +44,15 @@ class ListMeetingController {
       });
     }
 
-    return res.json(meetings);
+    //Remove da lista os meetups que ele está inscrito
+
+    const registrations = await Registration.findAll({
+      attributes: ['meeting_id'],
+      where: {user_id: req.userId}})
+
+    const result =  meetings.filter(m => !registrations.find(r => r.meeting_id === m.id ))
+
+    return res.json(result);
   }
 }
 
