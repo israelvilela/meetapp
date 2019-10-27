@@ -13,15 +13,12 @@ class ListMeetingController {
 
     const meetings = await Meeting.findAll({
       where: {
-        user_id: req.userId,
         date: {
           [Op.between]: [startOfDay(parsedDate), endOfDay(parsedDate)],
         },
       },
-      order: ['date'],
+      order: [['date', 'DESC']],
       attributes: ['id', 'title', 'description', 'location', 'date'],
-      limit: 10,
-      offset: (page - 1) * 10,
       include: [
         {
           model: User,
